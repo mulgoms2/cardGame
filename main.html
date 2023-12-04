@@ -25,6 +25,10 @@
         transition: 0.2s;
         box-shadow: 0px 0px 10px green;
       }
+
+      img.selected {
+        transform: rotateY(180deg);
+      }
     </style>
   </head>
   <body>
@@ -117,6 +121,9 @@
         // 선택된 카드의 원래 모습을 보여주어요.
         card.src = `./src/${realNumber}.png`;
 
+        //카드에 선택되는 효과를 부여하기 위한 클래스 리스트에요
+        toggleAnimation(card, true);
+
         // 한장의 카드가 선택되어있는 상황에서 버튼의 작동을 막아요.
         toggleBtnListned(false);
 
@@ -134,6 +141,9 @@
         const card1 = isPairArr[0];
         const card2 = isPairArr[1];
 
+        toggleAnimation(card1, false);
+        toggleAnimation(card2, false);
+
         isPairArr = [];
 
         // 두 카드가 동일한가요?
@@ -148,11 +158,8 @@
           pairArr.push(card1.getAttribute("data-index"));
           pairArr.push(card2.getAttribute("data-index"));
 
-          // 게임을 재개해요.
+          // 게임을 재개해요. 게임 재개시 버튼도 다시 동작합니다.
           setTimeout(gameStart, 1000);
-
-          // 다시 찬스버튼의 호출을 허용해요
-          document.getElementById("showBtn").onclick = showAll;
 
           // 모든 카드를 다 맞췄나요?
           if (isAllPair()) {
@@ -164,7 +171,7 @@
 
         setTimeout(() => {
           flipBack(card1, card2);
-        }, 1000);
+        }, 800);
       };
 
       let isAllPair = () => {
@@ -177,15 +184,9 @@
 
         // 카드를 원상태로 뒤집어놓고 나면 다시 게임을 재개시켜요.
         gameStart();
-
-        // 막아놨던 찬스버튼의 이벤트리스너를 다시 등록해줍니다.
-        toggleBtnListned(true);
       };
 
       let isSameCards = (card1, card2) => {
-        // 두 카드가 같은지 검사하고. 완전히 뒤집어 놓기 전까지 찬스버튼 호출을 막아요.
-        document.getElementById("showBtn").onclick = null;
-
         // 카드 1의 data-index 어트리뷰트를 가져와요. 해당 번호로 카드배열에 접근하면 카드의 원래 숫자를 알 수 있어요.
         const a = cardList[card1.getAttribute("data-index")];
         const b = cardList[card2.getAttribute("data-index")];
@@ -197,6 +198,9 @@
       let gameStart = () => {
         // 모든 카드가 클릭될 수 있는 요소로 변해요.
         const cards = board.children;
+
+        // 버튼의 리스너를 작성해요.
+        toggleBtnListned(true);
 
         // 이미 맞춘 카드들은 이벤트리스너를 주면 안돼요.
         for (const card of cards) {
@@ -210,10 +214,19 @@
       let gamePause = () => {
         const cards = board.children;
 
+        // 버튼 이벤트들을 잠시 중단합니다.
+        toggleBtnListned(false);
+
         for (const card of cards) {
           card.classList.remove("gameStart");
           card.onclick = null;
         }
+      };
+
+      let toggleAnimation = (card, flag) => {
+        // 선택된 카드에 애니메이션 효과를 부여하기 위한 클래스 리스트에요.
+        if (flag) card.classList.add("selected");
+        else card.classList.remove("selected");
       };
 
       let toggleBtnListned = (flag) => {
