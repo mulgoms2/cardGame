@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        user-select: none;
+        background-color: gainsboro;
+      }
+
+      img {
+        width: 80px;
+        height: 120px;
+        margin: 5px;
+      }
+
+      img.gameStart {
+        transition: 0.2s;
+        cursor: pointer;
+      }
+
+      img.gameStart:hover {
+        transition: 0.2s;
+        box-shadow: 0px 0px 10px green;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="showBtn" onclick="showAll()">show All</button>
+    <button id="hideBtn" onclick="hideAll()">hide All</button>
+    <button id="shuffleBtn" onclick="shuffle()">shuffle</button><br />
+    <div id="board">
+      <!-- 52장의 카드를 보여준다. -->
+    </div>
+
+    <script>
+      const board = document.getElementById("board");
+      const CARDS_NUM = 52;
+
+      // 기존의 카드 초기화를 위한 배열
+      let cardList = [];
+
+      // 카드의 짝을 확인하기 위한 배열
+      let isPairArr = [];
+      let 정답카운트 = 0;
+
+      // 정답배열
+      let pairArr = [];
+
+      window.onload = function () {
+        // 1. 카드를 배열에 등록해요.
+        initCardList();
+
+        // 2. 배열에 들어있는 카드를 섞어요.
+        shuffle();
+
+        // 3. 화면에 카드를 8초 보여주고, 카드를 가려요. 카드를 가리면서 게임이 자동으로 시작해요.
+        // showAll -> hideAll -> gameStart
+        showAll();
+
+        // setTimeout(gameStart, 8500);
+      };
+
+      // 카드를 배열에 초기화 해요.
+      let initCardList = () => {
+        cardList = Array.from(new Array(CARDS_NUM), (e, i) => i);
+      };
+
+      // 모든 카드를 보여준다.(앞면이 보이게 한다.)
+      let showAll = () => {
+        // 카드가 숨겨지기 전까지는 클릭되지 않아요.
+        gamePause();
+        toggleBtnListned(false);
+
+        // 섞인 숫자 배열을 통해서 카드를 태그로 만들어내요.
+        board.innerHTML = cardList.reduce((prev, num, index) => {
+          prev += `<img src=./src/${num}.png data-index='${index}' draggable='false'>`;
+          return prev;
+        }, "");
+
+        // 4초 보여준 뒤 카드를 뒤집어버려요.
+        setTimeout(() => {
+          toggleBtnListned(true);
+          hideAll();
+        }, 4000);
+      };
+
+      // 모든 카드를 덮는다.(뒷면이 보이게 한다.)
+      let hideAll = () => {
+        const cards = board.children;
+        const hideImg = `./src/hide.png`;
+
+        for (const card of cards) {
+          // card.getAttribute('data-index')가 정답배열에 있으면 뒤집지 않아요.
+          if (pairArr.indexOf(card.getAttribute("data-index")) === -1) card.src = hideImg;
+        }
+
+        gameStart();
+      };
+
+      // 카드의 순서를 뒤섞는다.
+      let shuffle = () => {
+        const cards = board.children;
+        cardList.sort((a, b) => Math.random() - 0.5);
+
+        showAll();
+      };
+
+      // 카드를 뒤집어요.
+      let flipImg = (e) => {
+        // 동일한 카드를 검증하기 위한 배열에는 실제 선택된 카드 객체가 담겨야해요.
+        const card = e.target;
+        const realNumber = cardList[card.getAttribute("data-index")];
+
+        // 선택된 카드의 원래 모습을 보여주어요.
+        card.src = `./src/${realNumber}.png`;
+
+        // 한장의 카드가 선택되어있는 상황에서 버튼의 작동을 막아요.
+        toggleBtnListned(false);
+
+        // 비교를 위한 배열에 카드를 넣어요.
+        // 두번째 눌린 카드가 동일한 카드이면 안돼요.
+        if (isPairArr[0] !== card || isPairArr[0] === undefined) isPairArr.push(card);
+
+        // 두장의 카드가 뒤집혔나?
+        if (!(isPairArr.length === 2)) return;
+
+        // 사용자가 무리해서 카드를 뒤집지 못하게 잠시 게임을 멈춰요.
+        gamePause();
+
+        // 두장의 카드에요
+        const card1 = isPairArr[0];
+        const card2 = isPairArr[1];
+
+        isPairArr = [];
+
+        // 두 카드가 동일한가요?
+        if (isSameCards(card1, card2)) {
+          // 두 카드의 이벤트 리스너를 압수해요^^
+          card1.onclick = null;
+          card2.onclick = null;
+          card1.classList.remove("gameStart");
+          card2.classList.remove("gameStart");
+
+          // 정답 배열에 정답인 카드의 data-index값을 저장합니다.
+          pairArr.push(card1.getAttribute("data-index"));
+          pairArr.push(card2.getAttribute("data-index"));
+
+          // 게임을 재개해요.
+          setTimeout(gameStart, 1000);
+
+          // 다시 찬스버튼의 호출을 허용해요
+          document.getElementById("showBtn").onclick = showAll;
+
+          // 모든 카드를 다 맞췄나요?
+          if (isAllPair()) {
+            // 모든 카드를 맞췄습니다 게임을 종료해요.
+            window.alert("축하합니다");
+          }
+          return;
+        }
+
+        setTimeout(() => {
+          flipBack(card1, card2);
+        }, 1000);
+      };
+
+      let isAllPair = () => {
+        return pairArr.length === CARDS_NUM;
+      };
+
+      let flipBack = (card1, card2) => {
+        card1.src = `./src/hide.png`;
+        card2.src = `./src/hide.png`;
+
+        // 카드를 원상태로 뒤집어놓고 나면 다시 게임을 재개시켜요.
+        gameStart();
+
+        // 막아놨던 찬스버튼의 이벤트리스너를 다시 등록해줍니다.
+        toggleBtnListned(true);
+      };
+
+      let isSameCards = (card1, card2) => {
+        // 두 카드가 같은지 검사하고. 완전히 뒤집어 놓기 전까지 찬스버튼 호출을 막아요.
+        document.getElementById("showBtn").onclick = null;
+
+        // 카드 1의 data-index 어트리뷰트를 가져와요. 해당 번호로 카드배열에 접근하면 카드의 원래 숫자를 알 수 있어요.
+        const a = cardList[card1.getAttribute("data-index")];
+        const b = cardList[card2.getAttribute("data-index")];
+
+        return a === parseInt((b + 26) % 52);
+      };
+
+      // 게임시작.
+      let gameStart = () => {
+        // 모든 카드가 클릭될 수 있는 요소로 변해요.
+        const cards = board.children;
+
+        // 이미 맞춘 카드들은 이벤트리스너를 주면 안돼요.
+        for (const card of cards) {
+          if (pairArr.indexOf(card.getAttribute("data-index")) === -1) {
+            card.classList.add("gameStart");
+            card.onclick = flipImg;
+          }
+        }
+      };
+
+      let gamePause = () => {
+        const cards = board.children;
+
+        for (const card of cards) {
+          card.classList.remove("gameStart");
+          card.onclick = null;
+        }
+      };
+
+      let toggleBtnListned = (flag) => {
+        document.getElementById("shuffleBtn").onclick = flag ? shuffle : null;
+        //hide All 버튼의 동작을 중단시켜요.
+        document.getElementById("hideBtn").onclick = flag ? hideAll : null;
+        //showAll 버튼의 작동을 잠시 중단시킵니다.
+        document.getElementById("showBtn").onclick = flag ? showAll : null;
+      };
+    </script>
+  </body>
+</html>
