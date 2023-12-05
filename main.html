@@ -15,9 +15,11 @@
         height: 120px;
         margin: 5px;
         transition: 0.35s;
+        /* transform: scaleX(-1); */
       }
 
       img.showAll {
+        transition: 0.3s;
         transform: scaleX(-1);
       }
 
@@ -47,7 +49,7 @@
   <body>
     <div id="buttonBox">
       <button id="showBtn" onclick="showAll()">힌트</button>
-      <button id="hideBtn" onclick="hideAll()">숨기기</button>
+      <!-- <button id="hideBtn" onclick="hideAll()">숨기기</button> -->
       <button id="shuffleBtn" onclick="shuffle()">재시작</button><br />
     </div>
     <div id="scoreBoard">
@@ -65,7 +67,7 @@
       let cardList = [];
 
       // 카드의 짝을 확인하기 위한 배열
-      let isPairArr = [];
+      let twoCards = [];
       let 정답카운트 = 0;
 
       // 정답배열
@@ -129,6 +131,12 @@
         const cards = board.children;
         cardList.sort((a, b) => Math.random() - 0.5);
 
+        // 셔플은 일종의 게임 재시작이에요. 정답 카드를 모아놓는 배열을 비워줍니다.
+        pairArr = [];
+
+        // 스코어를 0으로 초기화해요.
+        document.getElementById("score").innerHTML = `score : 0`;
+
         showAll();
       };
 
@@ -149,19 +157,19 @@
 
         // 비교를 위한 배열에 카드를 넣어요.
         // 두번째 눌린 카드가 동일한 카드이면 안돼요.
-        if (isPairArr[0] !== card || isPairArr[0] === undefined) isPairArr.push(card);
+        if (twoCards[0] !== card || twoCards[0] === undefined) twoCards.push(card);
 
         // 두장의 카드가 뒤집혔나?
-        if (!(isPairArr.length === 2)) return;
+        if (!(twoCards.length === 2)) return;
 
         // 사용자가 무리해서 카드를 뒤집지 못하게 잠시 게임을 멈춰요.
         gamePause();
 
         // 두장의 카드에요
-        const card1 = isPairArr[0];
-        const card2 = isPairArr[1];
+        const card1 = twoCards[0];
+        const card2 = twoCards[1];
 
-        isPairArr = [];
+        twoCards = [];
 
         // 두 카드가 동일한가요?
         if (isSameCards(card1, card2)) {
@@ -254,7 +262,7 @@
       let toggleBtnListned = (flag) => {
         document.getElementById("shuffleBtn").onclick = flag ? shuffle : null;
         //hide All 버튼의 동작을 중단시켜요.
-        document.getElementById("hideBtn").onclick = flag ? hideAll : null;
+        // document.getElementById("hideBtn").onclick = flag ? hideAll : null;
         //showAll 버튼의 작동을 잠시 중단시킵니다.
         document.getElementById("showBtn").onclick = flag ? showAll : null;
       };
