@@ -17,9 +17,15 @@
         transition: 0.35s;
       }
 
+      img.showAll {
+        transform: scaleX(-1);
+      }
+
       img.gameStart {
         transition: 0.35s;
         cursor: pointer;
+
+        /* transform: none; */
       }
 
       img.gameStart:hover {
@@ -34,7 +40,6 @@
 
       #board {
         display: grid;
-        /* grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr; */
         grid-template-columns: repeat(13, 1fr);
       }
     </style>
@@ -90,7 +95,8 @@
 
         // 섞인 숫자 배열을 통해서 카드를 태그로 만들어내요.
         board.innerHTML = cardList.reduce((prev, num, index) => {
-          prev += `<img src=./src/${num}.png data-index='${index}' draggable='false'>`;
+          // 클래스 showAll은 카드가 보여지는 동안 좌우반전을 주는 속성이에요.
+          prev += `<img src=./src/${num}.png data-index='${index}' draggable='false' class="showAll">`;
           return prev;
         }, "");
 
@@ -107,7 +113,12 @@
 
         for (const card of cards) {
           // card.getAttribute('data-index')가 정답배열에 있으면 뒤집지 않아요.
-          if (pairArr.indexOf(card.getAttribute("data-index")) === -1) card.src = hideImg;
+          if (pairArr.indexOf(card.getAttribute("data-index")) === -1) {
+            card.src = hideImg;
+
+            // 힌트가 끝나고 카드가 뒤집어질때 다시 좌우반전을 원래대로 돌려놔요. 그래야 카드가 뒤집힐때 반전되지 않아요.
+            card.classList.remove("showAll");
+          }
         }
 
         gameStart();
