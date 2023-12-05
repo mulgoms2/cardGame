@@ -7,34 +7,46 @@
     <style>
       body {
         user-select: none;
-        background-color: gainsboro;
+        background-color: rgba(204, 196, 196, 0.32);
       }
 
       img {
         width: 80px;
         height: 120px;
         margin: 5px;
+        transition: 0.35s;
       }
 
       img.gameStart {
-        transition: 0.2s;
+        transition: 0.35s;
         cursor: pointer;
       }
 
       img.gameStart:hover {
-        transition: 0.2s;
+        transition: 0.35s;
         box-shadow: 0px 0px 10px green;
       }
 
       img.selected {
-        transform: rotateY(180deg);
+        transform: scaleX(-1);
+        transition: 0.35s;
+      }
+
+      #board {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
       }
     </style>
   </head>
   <body>
-    <button id="showBtn" onclick="showAll()">show All</button>
-    <button id="hideBtn" onclick="hideAll()">hide All</button>
-    <button id="shuffleBtn" onclick="shuffle()">shuffle</button><br />
+    <div id="buttonBox">
+      <button id="showBtn" onclick="showAll()">힌트</button>
+      <button id="hideBtn" onclick="hideAll()">숨기기</button>
+      <button id="shuffleBtn" onclick="shuffle()">재시작</button><br />
+    </div>
+    <div id="scoreBoard">
+      <p style="font-size: 20px" id="score">score : 0</p>
+    </div>
     <div id="board">
       <!-- 52장의 카드를 보여준다. -->
     </div>
@@ -63,8 +75,6 @@
         // 3. 화면에 카드를 8초 보여주고, 카드를 가려요. 카드를 가리면서 게임이 자동으로 시작해요.
         // showAll -> hideAll -> gameStart
         showAll();
-
-        // setTimeout(gameStart, 8500);
       };
 
       // 카드를 배열에 초기화 해요.
@@ -76,7 +86,6 @@
       let showAll = () => {
         // 카드가 숨겨지기 전까지는 클릭되지 않아요.
         gamePause();
-        toggleBtnListned(false);
 
         // 섞인 숫자 배열을 통해서 카드를 태그로 만들어내요.
         board.innerHTML = cardList.reduce((prev, num, index) => {
@@ -86,7 +95,6 @@
 
         // 4초 보여준 뒤 카드를 뒤집어버려요.
         setTimeout(() => {
-          toggleBtnListned(true);
           hideAll();
         }, 4000);
       };
@@ -118,11 +126,11 @@
         const card = e.target;
         const realNumber = cardList[card.getAttribute("data-index")];
 
-        // 선택된 카드의 원래 모습을 보여주어요.
-        card.src = `./src/${realNumber}.png`;
-
         //카드에 선택되는 효과를 부여하기 위한 클래스 리스트에요
         toggleAnimation(card, true);
+
+        // 선택된 카드의 원래 모습을 보여주어요.
+        card.src = `./src/${realNumber}.png`;
 
         // 한장의 카드가 선택되어있는 상황에서 버튼의 작동을 막아요.
         toggleBtnListned(false);
@@ -141,9 +149,6 @@
         const card1 = isPairArr[0];
         const card2 = isPairArr[1];
 
-        toggleAnimation(card1, false);
-        toggleAnimation(card2, false);
-
         isPairArr = [];
 
         // 두 카드가 동일한가요?
@@ -158,6 +163,9 @@
           pairArr.push(card1.getAttribute("data-index"));
           pairArr.push(card2.getAttribute("data-index"));
 
+          // 스코어를 증가시켜요.
+          document.getElementById("score").innerHTML = `score : ${pairArr.length * 100} `;
+
           // 게임을 재개해요. 게임 재개시 버튼도 다시 동작합니다.
           setTimeout(gameStart, 1000);
 
@@ -170,6 +178,8 @@
         }
 
         setTimeout(() => {
+          toggleAnimation(card1, false);
+          toggleAnimation(card2, false);
           flipBack(card1, card2);
         }, 800);
       };
@@ -199,7 +209,7 @@
         // 모든 카드가 클릭될 수 있는 요소로 변해요.
         const cards = board.children;
 
-        // 버튼의 리스너를 작성해요.
+        // 버튼의 리스너를 작동시켜요
         toggleBtnListned(true);
 
         // 이미 맞춘 카드들은 이벤트리스너를 주면 안돼요.
