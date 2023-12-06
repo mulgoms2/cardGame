@@ -17,12 +17,12 @@
         transition: 0.35s;
       }
 
-      img.gameStart {
+      img.clickAble {
         transition: 0.35s;
         cursor: pointer;
       }
 
-      img.gameStart:hover {
+      img.clickAble:hover {
         transition: 0.35s;
         box-shadow: 0px 0px 10px green;
       }
@@ -40,9 +40,9 @@
   </head>
   <body>
     <div id="buttonBox">
-      <button id="showBtn" onclick="showAll()">힌트</button>
+      <button id="hintBtn" onclick="hint()">힌트</button>
       <!-- <button id="hideBtn" onclick="hideAll()">숨기기</button> -->
-      <button id="shuffleBtn" onclick="shuffle()">재시작</button><br />
+      <button id="restartBtn" onclick="reStart()">재시작</button><br />
     </div>
     <div id="scoreBoard">
       <p style="font-size: 20px" id="score">score : 0</p>
@@ -54,9 +54,11 @@
     <script>
       const board = document.getElementById("board");
       const CARDS_NUM = 52;
+      const SHOW_ALL_TIME = 4000;
+      const SHOW_HINT_TIME = 2000;
 
       // 기존의 카드 초기화를 위한 배열
-      let cardList = [];
+      let randNumArr = [];
 
       // 카드의 짝을 확인하기 위한 배열
       let twoCards = [];
@@ -64,66 +66,84 @@
 
       // 정답배열
       let pairArr = [];
-      let score = (window.onload = function () {
-        // 1. 카드를 배열에 등록해요.
-        initCardList();
 
-        // 2. 배열에 들어있는 카드를 섞어요.
-        shuffle();
+      window.onload = function () {
+        // 1. 카드를 배열에 등록해요.
+        initRandNumArr();
 
         // 3. 화면에 카드를 8초 보여주고, 카드를 가려요. 카드를 가리면서 게임이 자동으로 시작해요.
-        // showAll -> hideAll -> gameStart
+        // showAll -> hideAll -> clickAble
+        toggleBtnListned(false);
         showAll();
-      });
+
+        // 4초 동안 카드를 보여주고 뒤집어버려요.
+        setTimeout(() => {
+          hideAll();
+          // 힌트, 재시작 등의 사용자 버튼의 동작을 허용합니다.
+          toggleBtnListned(true);
+        }, SHOW_ALL_TIME);
+      };
 
       // 카드를 배열에 초기화 해요.
-      let initCardList = () => {
-        cardList = Array.from(new Array(CARDS_NUM), (e, i) => i);
+      let initRandNumArr = () => {
+        randNumArr = Array.from(new Array(CARDS_NUM), (e, i) => i).sort((a, b) => Math.random() - 0.5);
       };
 
       // 모든 카드를 보여준다.(앞면이 보이게 한다.)
       let showAll = () => {
-        // 카드가 숨겨지기 전까지는 클릭되지 않아요.
-        gamePause();
+        // 카드가 보여지는 동안은 카드가 활성화(클릭, 이벤트) 되지 않아요.
+        toggleCardListener(false);
 
         // 섞인 숫자 배열을 통해서 카드를 태그로 만들어내요.
-        board.innerHTML = cardList.reduce((prev, num, index) => {
+        board.innerHTML = randNumArr.reduce((prev, num, index) => {
           // data-index 속성은 카드의 숫자를 알아내기 위한 배열의 인덱스입니다.
           prev += `<img src=./src/${num}.png data-index='${index}' draggable='false'>`;
           return prev;
         }, "");
-
-        // 4초 동안 카드를 보여주고 뒤집어버려요.
-        setTimeout(hideAll, 4000);
       };
 
+      // 힌트 버튼이 눌리면 작동해요.
+      let hint = () => {
+        // 버튼의 동작을 잠시 막아놓아요.
+        toggleBtnListned(false);
+        // 모든 카드를 보여줍니다.
+        showAll();
+
+        // 힌트 시간만큼 후에 카드를 뒤집고 비활성화 되었던 버튼과 카드의 클릭 이벤트를 활성화 합니다.
+        setTimeout(() => {
+          hideAll();
+          toggleBtnListned(true);
+          toggleCardListener(true);
+        }, SHOW_HINT_TIME);
+      };
       // 모든 카드를 덮는다.(뒷면이 보이게 한다.)
       let hideAll = () => {
         const cards = board.children;
-        // const HIDE_IMG = `./src/hide.png`;
 
+        // 이미 맞춘 카드를 제외하고 전부 뒤집어요.
         for (const card of cards) {
-          // 정답 배열에 존재하는 카드는 다시 뒤집어놓지 않습니다.
           if (pairArr.indexOf(card.getAttribute("data-index")) === -1) {
             flipBack(card);
           }
         }
-
-        gameStart();
       };
 
-      // 카드의 순서를 뒤섞는다.
-      let shuffle = () => {
-        const cards = board.children;
-        cardList.sort((a, b) => Math.random() - 0.5);
-
-        // 셔플은 일종의 게임 재시작이에요. 정답 카드를 모아놓는 배열을 비워줍니다.
-        pairArr = [];
-
-        // 스코어를 0으로 초기화해요.
+      // 게임 재시작을 담당하는 메서드에요.
+      let reStart = () => {
+        // 게임 점수판을 0점으로 초기화합니다.
         setScore(0);
 
+        // 정답 배열을 전부 비워줍니다.
+        pairArr = [];
+
+        // 카드를 섞고 카드를 전부 보여줍니다.
+        initRandNumArr();
+
+        // 모든 카드를 보여주어요.
         showAll();
+
+        // 4초뒤에 카드를 숨겨요
+        setTimeout(hideAll, SHOW_ALL_TIME);
       };
 
       // 카드를 뒤집어요.
@@ -153,8 +173,10 @@
         // 두장의 카드가 뒤집혀야 다음 단계로 진행할 수 있어요.
         if (!(twoCards.length === 2)) return;
 
-        // 사용자가 무리해서 카드를 뒤집지 못하게 잠시 게임을 멈춰요.
-        gamePause();
+        // 두 카드의 비교가 끝나기 전까지 다른 카드를 선택하지 못합니다.
+        toggleCardListener(false);
+        // 힌트, 재시작 등의 사용자 버튼의 동작을 잠시 차단합니다.
+        toggleBtnListned(false);
 
         // 두장의 카드에요
         const CARD1 = twoCards.shift();
@@ -163,8 +185,8 @@
         // 두 카드가 동일한가요?
         if (isSameCards(CARD1, CARD2)) {
           // 두 카드가 동일하면 클릭 이벤트를 제거해요.
-          CARD1.classList.remove("gameStart");
-          CARD2.classList.remove("gameStart");
+          CARD1.classList.remove("clickAble");
+          CARD2.classList.remove("clickAble");
 
           // 정답 배열에 정답인 카드의 data-index값을 저장합니다.
           pairArr.push(CARD1.getAttribute("data-index"));
@@ -174,7 +196,10 @@
           setScore(pairArr.length * 100);
 
           // 게임을 재개해요. 게임 재개시 버튼도 다시 동작합니다.
-          setTimeout(gameStart, 1000);
+          setTimeout(() => {
+            toggleCardListener(true);
+            toggleBtnListned(true);
+          }, 300);
 
           // 모든 카드를 다 맞췄나요?
           if (isAllPair()) {
@@ -186,6 +211,7 @@
 
         // 두 카드가 동일하지 않을때 틀린 카드를 잠시 보여준 후 카드를 뒤집어요
         setTimeout(() => {
+          toggleBtnListned(true);
           flipBack(CARD1, CARD2);
         }, 800);
       };
@@ -204,7 +230,7 @@
       // 선택 된 카드의 앞면을 보여주는 함수입니다.
       let flipFront = (card) => {
         // 선택된 카드의 진짜 숫자는 해당 카드 이미지 태그의 data-index의 값을 통해 알 수 있어요.
-        const realNumber = cardList[card.getAttribute("data-index")];
+        const realNumber = randNumArr[card.getAttribute("data-index")];
 
         // 카드가 앞면이 보여질때는 뒤집혀있으면 안되어요.
         flipAnimation(card, false);
@@ -215,60 +241,48 @@
 
       // 카드를 다시 뒷면으로 돌려놓습니다.
       let flipBack = (card1, card2) => {
-        // 이 메서드는 인자가 한개만 호출될 때가 있어서 코드를 작성할때 예외상황을 대비해야 합니다.
-        card1.src = `./src/hide.png`;
-        if (card2) card2.src = `./src/hide.png`;
-
         // 다시 카드가 뒤집히는 애니메이션을 부여합니다.
         flipAnimation(card1, true);
         if (card2) flipAnimation(card2, true);
 
+        // 이 메서드는 인자가 한개만 호출될 때가 있어서 코드를 작성할때 예외상황을 대비해야 합니다.
+        card1.src = `./src/hide.png`;
+        if (card2) card2.src = `./src/hide.png`;
+
         // 카드를 다시 뒤집어 놓은 후에 사용자와의 상호작용을 활성화 합니다.
-        gameStart();
+        toggleCardListener(true);
       };
 
       // 두 카드가 동일한지를 비교하는 함수입니다.
       let isSameCards = (card1, card2) => {
         // 카드의 data-index 어트리뷰트를 가져와요.
         // 해당 번호로 섞여있는 카드 배열에 접근하면 카드의 진짜 숫자를 알 수 있어요.
-        const a = cardList[card1.getAttribute("data-index")];
-        const b = cardList[card2.getAttribute("data-index")];
+        const a = randNumArr[card1.getAttribute("data-index")];
+        const b = randNumArr[card2.getAttribute("data-index")];
 
         // 두 카드의 동일 여부는 카드번호가 26번 떨어져있는가 입니다.
         return a === parseInt((b + 26) % 52);
       };
 
-      // 게임시작.
-      let gameStart = () => {
-        // 모든 카드(이미지태그)를 가져옵니다.
+      // 카드의 클릭 이벤트를 켜고 끌 수 있습니다.
+      let toggleCardListener = (flag) => {
         const cards = board.children;
 
-        // 힌트, 재시작 등의 사용자 버튼의 동작을 허용합니다.
-        toggleBtnListned(true);
-
         for (const card of cards) {
-          // 이미 맞춘 카드들은 이벤트리스너를 주면 안돼요.
-          if (pairArr.indexOf(card.getAttribute("data-index")) === -1) {
-            // 카드들에 css 선택효과(마우스 호버시)를 부여합니다.
-            card.classList.add("gameStart");
+          // 카드의 선택 효과를 활성화 / 비활성화 합니다.
+          if (flag) {
+            // 이미 맞춘 카드들은 이벤트리스너를 주면 안돼요.
+            if (pairArr.indexOf(card.getAttribute("data-index")) === -1) {
+              // 카드들에 css 선택효과(마우스 호버시)를 부여합니다.
+              card.classList.add("clickAble");
 
-            // 카드의 클릭 이벤트를 활성화 합니다.
-            card.onclick = flipImg;
+              // 카드의 클릭 이벤트를 활성화 합니다.
+              card.onclick = flipImg;
+            }
+          } else {
+            card.classList.remove("clickAble");
+            card.onclick = null;
           }
-        }
-      };
-
-      // 사용자 이벤트를 일시 중단시킵니다.
-      let gamePause = () => {
-        const cards = board.children;
-
-        // 힌트, 재시작 버튼의 동작을 비활성화 합니다.
-        toggleBtnListned(false);
-
-        for (const card of cards) {
-          // 카드들의 선택효과를 비활성화 하고, 클릭이벤트를 비활성화 합니다.
-          card.classList.remove("gameStart");
-          card.onclick = null;
         }
       };
 
@@ -280,8 +294,8 @@
 
       // 사용자 조작 버튼들을 활성/비활성화 하는 메서드 입니다.
       let toggleBtnListned = (flag) => {
-        document.getElementById("shuffleBtn").onclick = flag ? shuffle : null;
-        document.getElementById("showBtn").onclick = flag ? showAll : null;
+        document.getElementById("restartBtn").onclick = flag ? reStart : null;
+        document.getElementById("hintBtn").onclick = flag ? hint : null;
       };
     </script>
   </body>
