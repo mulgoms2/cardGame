@@ -10,6 +10,26 @@
         background-color: rgba(204, 196, 196, 0.32);
       }
 
+      #buttonBox {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      #hintBtn {
+        padding: 10px 30px;
+        border: none;
+        border-radius: 5px;
+        background-color: blanchedalmond;
+        transition: 0.2s;
+      }
+
+      #hintBtn:hover {
+        transition: 0.2s;
+
+        background-color: rebeccapurple;
+      }
+
       img {
         width: 80px;
         height: 120px;
@@ -40,9 +60,8 @@
   </head>
   <body>
     <div id="buttonBox">
-      <button id="hintBtn">힌트</button>
-      <!-- <button id="hideBtn" onclick="hideAll()">숨기기</button> -->
-      <button id="restartBtn"">재시작</button><br />
+      <button id="hintBtn">HINT</button>
+      <button id="restartBtn">재시작</button>
     </div>
     <div id="scoreBoard">
       <p style="font-size: 20px" id="score">score : 0</p>
@@ -50,12 +69,12 @@
     <div id="board">
       <!-- 52장의 카드를 보여준다. -->
     </div>
-    <script src="/cardGame/CardGame.js"></script>
+    <script src="./CardGame.js"></script>
     <script>
       window.onload = () => {
-        const board = document.getElementById('board');
-        const hintBtn = document.getElementById('hintBtn');
-        const restartBtn = document.getElementById('restartBtn');
+        const board = document.getElementById("board");
+        const hintBtn = document.getElementById("hintBtn");
+        const restartBtn = document.getElementById("restartBtn");
 
         const cardGame = new CardGame(board, hintBtn, restartBtn);
 

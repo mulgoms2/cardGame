@@ -1,7 +1,7 @@
-function CardGame(board, hideBtn, reStartBtn) {
+function CardGame(board, hideBtn, restartBtn) {
   const BOARD = board;
   const HINT_BTN = hideBtn;
-  const RESTART_BTN = reStartBtn;
+  const RESTART_BTN = restartBtn;
 
   const CARDS_NUM = 52;
   const CARD_LIST = board.children;
@@ -22,7 +22,7 @@ function CardGame(board, hideBtn, reStartBtn) {
     randNumArr = Array.from(new Array(CARDS_NUM), (e, i) => i).sort((a, b) => Math.random() - 0.5);
   }
 
-  // 모든 카드를 보여준다.(앞면이 보이게 한다.)
+  // 게임 보드에 이미지 태그를 만들어요.
   function makeImgTag() {
     // 섞인 숫자 배열을 통해서 카드를 태그로 만들어내요.
     BOARD.innerHTML = randNumArr.reduce((prev, num, index) => {
@@ -32,6 +32,7 @@ function CardGame(board, hideBtn, reStartBtn) {
     }, "");
   }
 
+  // 모든 카드의 앞면을 보여줍니다.
   function showAllCards() {
     for (const card of CARD_LIST) {
       flipFront(card);
@@ -84,6 +85,8 @@ function CardGame(board, hideBtn, reStartBtn) {
       hideCard(card);
       // 카드 비교를 위한 배열을 비웁니다.
       twoCards.pop();
+      // 다시 막아놨던 힌트버튼과 재시작 버튼을 풀어줘요.
+      toggleBtnListener(true);
     } else {
       // 처음과 다른 카드가 눌렸습니다.
       twoCards.push(card);
@@ -213,6 +216,7 @@ function CardGame(board, hideBtn, reStartBtn) {
     HINT_BTN.onclick = flag ? hint : null;
   }
 
+  // 게임 시작.
   function gameStart() {
     // 1. 랜덤한 카드 숫자를 배열에 초기화 합니다.
     initRandNumArr();
@@ -242,7 +246,7 @@ function CardGame(board, hideBtn, reStartBtn) {
     }, SHOW_ALL_TIME);
   }
 
-  // 게임을 시작하기 위한 public 메서드에요.
+  // 외부에서 게임시작 메서드를 호출하기 위한 public 메서드에요.
   this.gameStart = () => {
     gameStart();
   };
