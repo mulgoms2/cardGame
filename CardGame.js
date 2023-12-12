@@ -19,7 +19,7 @@ function CardGame(board, hideBtn, restartBtn) {
 
   // 랜덤한 숫자로 채워진 배열을 반환합니다.
   function initRandNumArr() {
-    randNumArr = Array.from(new Array(CARDS_NUM), (e, i) => i).sort((a, b) => Math.random() - 0.5);
+    randNumArr = [...Array(CARDS_NUM)].map((e, i) => i).sort((a, b) => Math.random() - 0.5);
   }
 
   // 게임 보드에 이미지 태그를 만들어요.
@@ -34,9 +34,7 @@ function CardGame(board, hideBtn, restartBtn) {
 
   // 모든 카드의 앞면을 보여줍니다.
   function showAllCards() {
-    for (const card of CARD_LIST) {
-      flipFront(card);
-    }
+    [...CARD_LIST].forEach(flipFront);
   }
 
   // 힌트 버튼이 눌리면 작동해요.
@@ -58,12 +56,8 @@ function CardGame(board, hideBtn, restartBtn) {
 
   // 모든 카드를 덮는다.(뒷면이 보이게 한다.)
   function hideAllCards() {
-    // 이미 맞춘 카드를 제외하고 전부 뒤집어요.
-    for (const card of CARD_LIST) {
-      if (pairArr.indexOf(card.getAttribute("data-index")) === -1) {
-        hideCard(card);
-      }
-    }
+    // 이미 맞춘 카드를 제외하고 전부 뒤집어요
+    [...CARD_LIST].filter((e) => pairArr.indexOf(e.getAttribute("data-index")) === -1).forEach((e) => hideCard(e));
   }
 
   // 카드를 뒤집어요.
@@ -186,7 +180,7 @@ function CardGame(board, hideBtn, restartBtn) {
 
   // 카드의 클릭 이벤트를 켜고 끌 수 있습니다.
   function toggleCardListener(flag) {
-    for (const card of CARD_LIST) {
+    [...CARD_LIST].forEach((card) => {
       // 카드의 선택 효과를 활성화 / 비활성화 합니다.
       if (flag) {
         // 이미 맞춘 카드들은 이벤트리스너를 주면 안돼요.
@@ -201,7 +195,7 @@ function CardGame(board, hideBtn, restartBtn) {
         card.classList.remove("clickAble");
         card.onclick = null;
       }
-    }
+    });
   }
 
   // 선택된 카드에 뒤집히는 효과를 주거나, 빼앗습니다.
